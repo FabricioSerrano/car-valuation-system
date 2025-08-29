@@ -1,5 +1,7 @@
 venv
 .vscode
+.curls
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
