@@ -5,3 +5,4 @@ exclude =
     .env
     venv
     .venv
+    _temp
