@@ -6,12 +6,15 @@ from models.brand_model import Brand
 from models.reference_model import Reference
 from sqlalchemy import Column
 from time import sleep
+import logging
 
+logger = logging.getLogger('controllers.brand_controller')
 
 class BrandController:
     def __init__(self):
         self.endpoint_url = f"{BASE_URL}/ConsultarMarcas"
         self.controller_execution_time = 60  # in minutes
+
 
     def get_all_brands(self) -> list[list[Brand]] | None:
         '''Fetch all car brands from the external API.'''
@@ -64,10 +67,12 @@ class BrandController:
 
                 brands_data_matrix.append(transformed_brand_data)
 
-                print(f'Fetched {len(transformed_brand_data)} brands for reference ID {reference.id}.')
-                    
+                logger.debug(f'Fetched {len(transformed_brand_data)} brands for reference ID {reference.id}.')
 
-            sleep(10)  # To avoid overwhelming the API with requests
+            else:
+                logger.warning(f'Failed to fetch brands for reference ID {reference.id}. Status code: {response.status_code}')     
+
+            sleep(5)  # To avoid overwhelming the API with requests
 
 
         if len(brands_data_matrix) > 0:
@@ -87,18 +92,20 @@ class BrandController:
     def register_all_brands(self, brands: list[Brand]) -> bool:
         '''Register all brands in the database if they do not already exist.'''
 
-        session = Session(engine)
-
         if brands is None or len(brands) == 0:
             return False
+        
+        session = Session(engine)
 
         if session.query(Brand).first() is None:
             session.add_all(brands)
+            logger.debug(f'Added {len(brands)} new brands.')
             
         else:
             for brand in brands:
                 if session.query(Brand).filter(Brand.id == brand.id).first() is None:
                     session.add(brand)
+                    logger.debug(f'Added new brand: {brand.name}.')
 
         session.commit()
         session.close()
@@ -109,7 +116,7 @@ class BrandController:
     def execute_etl(self) -> None:
         '''Main execution method to fetch, transform, and register brands.'''
 
-        print('Fetching brands...')
+        logger.info('Fetching brands')
 
         brands_data = self.get_all_brands()
         if brands_data is None:
@@ -117,7 +124,7 @@ class BrandController:
         
         for brands in brands_data:
             if self.register_all_brands(brands) == True:
-                print('Brands registered successfully.')
+                logger.info('Brands registered successfully.')
                 return
             
-            print(f'No new brands registered for reference {brands[0].name}.')
+            logger.debug(f'No new brands registered for reference {brands[0].name}.')
