@@ -14,4 +14,3 @@ class Model(base):
     updated_at = Column(DateTime, nullable=False, default=datetime.now(), onupdate=datetime.now())
     active = Column(Boolean, nullable=False, default=True)
     brand_id = Column(Integer, ForeignKey(Brand.id), nullable=False)
-    reference_id = Column(Integer, ForeignKey(Reference.id), nullable=False)

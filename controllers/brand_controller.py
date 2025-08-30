@@ -60,7 +60,7 @@ class BrandController:
                 if len(brands_data) == 0:
                     continue
 
-                transformed_brand_data = self.transform_brand_data(brands_data, reference.id)
+                transformed_brand_data = self.transform_brand_data(brands_data)
 
                 if transformed_brand_data is None:
                     continue
@@ -80,13 +80,13 @@ class BrandController:
 
         return None
     
-    def transform_brand_data(self, brands: list[dict[str, str]], reference_id : int | Column[int]) -> list[Brand]:
+    def transform_brand_data(self, brands: list[dict[str, str]]) -> list[Brand]:
         '''Transform raw brand data into Brand model instances, associating them with the given reference ID.'''
 
         if brands is None:
             return []
 
-        return [Brand(id=int(item['Value']), name=item['Label'], reference_id=reference_id) for item in brands]
+        return [Brand(id=int(item['Value']), name=item['Label']) for item in brands]
         
     
     def register_all_brands(self, brands: list[Brand]) -> bool:

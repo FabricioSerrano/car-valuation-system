@@ -80,7 +80,6 @@ class ModelsController:
                         model_obj = Model(
                             id = int(model['Value']),
                             name = model['Label'],
-                            reference_id = reference.id,
                             brand_id = brand.id
                         )
                         self.register_model(model_obj)
@@ -141,7 +140,7 @@ class ModelsController:
     def execute_etl(self) -> None:
         '''Main execution method to fetch, transform, and register models and years.'''
 
-        logger.info('Fetching models and years...')
+        logger.info('Fetching models and years.')
 
         if self.get_all_models_and_years_by_brand() == True:
             logger.info('Models and years registered successfully.')

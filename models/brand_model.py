@@ -11,4 +11,3 @@ class Brand(base):
     created_at = Column(DateTime, nullable=False, default=datetime.now())
     updated_at = Column(DateTime, nullable=False, default=datetime.now(), onupdate=datetime.now())
     active = Column(Boolean, nullable=False, default=True)
-    reference_id = Column(Integer, ForeignKey(Reference.id), nullable=False)
