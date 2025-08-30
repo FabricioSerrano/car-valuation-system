@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from datetime import datetime
+from models.reference_model import Reference
 from models import base
     
 class Brand(base):
@@ -10,3 +11,4 @@ class Brand(base):
     created_at = Column(DateTime, nullable=False, default=datetime.now())
     updated_at = Column(DateTime, nullable=False, default=datetime.now(), onupdate=datetime.now())
     active = Column(Boolean, nullable=False, default=True)
+    reference_id = Column(Integer, ForeignKey(Reference.id), nullable=False)

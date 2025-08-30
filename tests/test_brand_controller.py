@@ -8,5 +8,4 @@ def test_get_all_brands():
     controller = BrandController()
     brands = controller.get_all_brands()
     assert isinstance(brands, list)
-    assert all('Value' in brand.keys() and 'Label' in brand.keys() for brand in brands)
 

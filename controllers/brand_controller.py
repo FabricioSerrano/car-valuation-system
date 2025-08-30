@@ -3,6 +3,9 @@ from utils.configs import BASE_URL
 from models import engine
 from sqlalchemy.orm import Session
 from models.brand_model import Brand
+from models.reference_model import Reference
+from sqlalchemy import Column
+from time import sleep
 
 
 class BrandController:
@@ -10,9 +13,11 @@ class BrandController:
         self.endpoint_url = f"{BASE_URL}/ConsultarMarcas"
         self.controller_execution_time = 60  # in minutes
 
-    def get_all_brands(self) -> list[dict[str, str]] | None:
+    def get_all_brands(self) -> list[list[Brand]] | None:
         '''Fetch all car brands from the external API.'''
-        
+
+        brands_data_matrix : list[list[Brand]] = []
+
         headers = {
             'accept': 'application/json, text/javascript, */*; q=0.01',
             'accept-language': 'pt-BR,pt;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -30,31 +35,62 @@ class BrandController:
             'x-requested-with': 'XMLHttpRequest',
         }
 
-        data = {
-            'codigoTabelaReferencia': '324',
-            'codigoTipoVeiculo': '1',
-        }
+        session = Session(engine)
 
-        response = requests.post(self.endpoint_url, headers=headers, data=data)
+        references = session.query(Reference).order_by(Reference.id.desc()).all()
 
-        if response.ok:
-            return list[dict[str, str]](response.json())
+        session.close()
+
+        if len(references) == 0:
+            return None
+        
+        for reference in references:
+            data = {
+                'codigoTabelaReferencia': reference.id,
+                'codigoTipoVeiculo': '1',
+            }
+
+            response = requests.post(self.endpoint_url, headers=headers, data=data)
+
+            if response.ok:
+                brands_data = list[dict[str, str]](response.json())
+                if len(brands_data) == 0:
+                    continue
+
+                transformed_brand_data = self.transform_brand_data(brands_data, reference.id)
+
+                if transformed_brand_data is None:
+                    continue
+
+                brands_data_matrix.append(transformed_brand_data)
+
+                print(f'Fetched {len(transformed_brand_data)} brands for reference ID {reference.id}.')
+                    
+
+            sleep(10)  # To avoid overwhelming the API with requests
+
+
+        if len(brands_data_matrix) > 0:
+            return brands_data_matrix
 
         return None
     
-    def transform_brand_data(self, brands: list[dict[str, str]]) -> list[Brand]:
-        '''Transform raw brand data into Brand model instances.'''
+    def transform_brand_data(self, brands: list[dict[str, str]], reference_id : int | Column[int]) -> list[Brand]:
+        '''Transform raw brand data into Brand model instances, associating them with the given reference ID.'''
 
         if brands is None:
             return []
 
-        return [Brand(id=int(item['Value']), name=item['Label']) for item in brands]
+        return [Brand(id=int(item['Value']), name=item['Label'], reference_id=reference_id) for item in brands]
         
     
-    def register_all_brands(self, brands: list[Brand]) -> None:
+    def register_all_brands(self, brands: list[Brand]) -> bool:
         '''Register all brands in the database if they do not already exist.'''
 
         session = Session(engine)
+
+        if brands is None or len(brands) == 0:
+            return False
 
         if session.query(Brand).first() is None:
             session.add_all(brands)
@@ -67,12 +103,21 @@ class BrandController:
         session.commit()
         session.close()
 
+        return True
+
 
     def execute_etl(self) -> None:
         '''Main execution method to fetch, transform, and register brands.'''
+
+        print('Fetching brands...')
+
         brands_data = self.get_all_brands()
         if brands_data is None:
             return
         
-        brands = self.transform_brand_data(brands_data)
-        self.register_all_brands(brands)
+        for brands in brands_data:
+            if self.register_all_brands(brands) == True:
+                print('Brands registered successfully.')
+                return
+            
+            print(f'No new brands registered for reference {brands[0].name}.')
