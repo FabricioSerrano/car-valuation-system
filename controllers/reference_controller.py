@@ -3,7 +3,11 @@ from utils.configs import BASE_URL, MONTHS
 from models import engine
 from sqlalchemy.orm import Session
 from models.reference_model import Reference
-from datetime import datetime, timedelta
+from datetime import datetime
+import logging
+from time import perf_counter
+
+logger = logging.getLogger('controllers.reference_controller')
 
 class ReferenceController:
     def __init__(self) -> None:
@@ -86,11 +90,13 @@ class ReferenceController:
 
         if session.query(Reference).first() is None:
             session.add_all(references_to_register)
+            logger.debug(f'Added {len(references_to_register)} new references.')
         
         else:
             for reference in references_to_register:
                 if session.query(Reference).filter(Reference.id == reference.id).first() is None:
                     session.add(reference)
+                    logger.debug(f'Added new reference: {reference.name}.')
             
         session.commit()
         session.close()
@@ -102,7 +108,9 @@ class ReferenceController:
     def execute_etl(self) -> None:
         '''Main execution method to fetch, transform, and register references.'''
 
-        print('Fetching references...')
+        start_time = perf_counter()
+
+        logger.info('Fetching references')
 
         references = self.get_all_references()
         if references is None:
@@ -110,7 +118,11 @@ class ReferenceController:
         
         transformed_references = self.transform_reference_data(references)
         if self.register_references(transformed_references) == True:
-            print('References registered successfully.')
-            return
-        
-        print('No new references to registered.')
+            logger.info('References registered successfully.')
+
+        else:    
+            logger.debug('No new references to registered.')
+
+        end_time = perf_counter()
+        execution_time = end_time - start_time
+        logger.debug(f'ReferenceController execution time: {execution_time:.2f} seconds.')
