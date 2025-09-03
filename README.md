@@ -34,7 +34,7 @@ O **Car Valuation System** é um projeto Python que automatiza a coleta, transfo
 - `controllers/value_controller.py` : Deve implementar a lógica de coleta e registro dos valores dos veículos, segundo parametros de referência, marca, modelo e ano de fabricação/combustível.
 - `models/`: Contém os modelos ORM das entidades.
 - `utils/configs.py`: Configurações do projeto.
-- `TODO: tests/` : Implementação dos testes (unitário/itnegração)
+- `TODO: tests/` : Implementação dos testes (unitário/integração)
 
 ## Tecnologias Utilizadas
 
