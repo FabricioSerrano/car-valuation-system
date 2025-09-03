@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O **Car Valuation System** é um projeto Python que automatiza a coleta, transformação e armazenamento de dados de marcas, modelos e anos de veículos a partir da API oficial da Tabela Fipe. O objetivo é manter um banco de dados atualizado com informações relevantes para avaliação de veículos.
+O **Car Valuation System** é um projeto Python que automatiza a coleta, transformação e armazenamento de dados de marcas, modelos e anos de veículos a partir da API da Tabela Fipe. O objetivo é manter um banco de dados atualizado com informações relevantes para avaliação de veículos.
 
 ## Principais Componentes
 
